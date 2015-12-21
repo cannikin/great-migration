@@ -1,0 +1,55 @@
+#! /usr/bin/env ruby
+
+require 'bundler'
+Bundler.require
+require 'optparse'
+require_relative '../lib/great_migration'
+
+options = { :per_page => 10000, :rackspace_region => :dfw }
+parser = OptionParser.new do |opts|
+
+  opts.banner = 'Usage: bin/greatmigration [options]'
+  opts.separator ''
+  opts.separator '  Ex: bin/greatmigration -p 1000 --rackspace_user=username --rackspace_key=12345 ...'
+  opts.separator ''
+
+  opts.on('-h', '--help', 'This help message') do |o|
+    puts opts
+    exit
+  end
+
+  # per page
+  opts.on('-p COUNT', '--per-page=COUNT', 'Number of records to pull for each page from Rackspace (default: 10000)') do |o|
+    options[:per_page] = o.to_i
+  end
+
+  # rackspace options
+  opts.on('--rackspace-user=USERNAME', 'Rackspace account username') do |o|
+    options[:rackspace_user] = o
+  end
+  opts.on('--rackspace-key=API_KEY', 'Rackspace accoun tAPI key') do |o|
+    options[:rackspace_key] = o
+  end
+  opts.on('--rackspace-container=NAME', 'Rackspace container to copy objects from') do |o|
+    options[:rackspace_container] = o
+  end
+  opts.on('--rackspace-region=REGION', 'Rackspace region (default: dfw)') do |o|
+    options[:rackspace_region] = o.to_sym
+  end
+
+  # aws options
+  opts.on('--aws-key=ACCESS_KEY', 'AWS account Access Key') do |o|
+    options[:aws_key] = o
+  end
+  opts.on('--aws-secret=SECRET_KEY', 'AWS account Secret Access Key') do |o|
+    options[:aws_secret] = o
+  end
+  opts.on('--aws-bucket=NAME', 'AWS account bucket to copy objects to') do |o|
+    options[:aws_bucket] = o
+  end
+
+  opts.separator ''
+
+end.parse!
+
+GreatMigration.new(options).copy
