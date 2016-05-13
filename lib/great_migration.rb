@@ -21,7 +21,18 @@ class GreatMigration
     })
     @rackspace_directory = rackspace.directories.get(options[:rackspace_container])
     @aws_directory = aws.directories.get(options[:aws_bucket])
-    @aws_keys = @aws_directory.files.map(&:key) if @check_duplicates
+
+    if @check_duplicates
+      files = @aws.get_bucket(options[:aws_bucket], {'max-keys' =>'10000'})
+      truncated = files.body['IsTruncated']
+      @aws_keys = files.body['Contents'].map{|f| f["Key"]}
+      while truncated
+        files = @aws.get_bucket("stage-tip411",{'max-keys' =>'10000', 'marker' => files.body['Contents'].last["Key"]})
+        truncated = files.body['IsTruncated']
+        @aws_keys = @aws_keys + files.body['Contents'].map{|f| f["Key"]}
+      end
+    end
+
     @files = []
     @total = 0
   end
