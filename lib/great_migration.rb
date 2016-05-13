@@ -7,6 +7,7 @@ class GreatMigration
   def initialize(options={})
     options = default_options.merge(options)
     @per_page = options[:per_page]
+    @check_duplicates = options[:aws_check_duplicates]
     @rackspace = Fog::Storage.new({
       :provider           => 'Rackspace',
       :rackspace_username => options[:rackspace_user],
@@ -20,12 +21,24 @@ class GreatMigration
     })
     @rackspace_directory = rackspace.directories.get(options[:rackspace_container])
     @aws_directory = aws.directories.get(options[:aws_bucket])
+
+    if @check_duplicates
+      files = @aws.get_bucket(options[:aws_bucket], {'max-keys' =>'10000'})
+      truncated = files.body['IsTruncated']
+      @aws_keys = files.body['Contents'].map{|f| f["Key"]}
+      while truncated
+        files = @aws.get_bucket("stage-tip411",{'max-keys' =>'10000', 'marker' => files.body['Contents'].last["Key"]})
+        truncated = files.body['IsTruncated']
+        @aws_keys = @aws_keys + files.body['Contents'].map{|f| f["Key"]}
+      end
+    end
+
     @files = []
     @total = 0
   end
 
   def default_options
-    { :per_page => 10000 }
+    { :per_page => 10000, aws_check_duplicates: false }
   end
 
   def copy
@@ -66,14 +79,14 @@ class GreatMigration
       while process_pids.size < max_processes and files.any? do
         file = files.pop
         pid = Process.fork do
-          copy_file(file)
+          copy_file(page, file)
         end
         process_pids[pid] = { :file => file }
       end
 
       if pid_done = Process.wait
         if job_finished = process_pids.delete(pid_done)
-          puts "    [#{Process.pid}] Page #{page+1}: Copied #{job_finished[:file].key}."
+          puts "    [#{Process.pid}] Page #{page+1}: Finished #{job_finished[:file].key}."
         end
       end
     end
@@ -81,15 +94,19 @@ class GreatMigration
     puts "  [#{Process.pid}] ** Page #{page+1}: Copied #{total} files in #{Time.now - time}secs"
   end
 
-  private def copy_file(file)
+  private def copy_file(page, file)
     if file.content_type == 'application/directory'
       # skip directories
     else
-      aws_directory.files.create(
-        :key          => file.key,
-        :body         => file.body,
-        :content_type => file.content_type,
-        :public       => true)
+      if @check_duplicates and @aws_keys.include?(file.key)
+        puts "    [#{Process.pid}] ** Page #{page+1}: File already exists skipping... #{file.key}"
+      else
+        aws_directory.files.create(
+          :key          => file.key,
+          :body         => file.body,
+          :content_type => file.content_type,
+          :public       => true)
+      end
     end
   end
 
