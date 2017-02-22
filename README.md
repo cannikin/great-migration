@@ -1,4 +1,4 @@
-# Great Migrator
+# Great Migration
 
 Ever have to migrate from Rackspace Files to S3? I did. And I couldn't find a simple way to do it, so I made one. There's a service [mover.io](https://mover.io/) but it gave up after 25,000 objects. I had to copy 175,000.
 
