@@ -24,16 +24,18 @@ To get as much performance out of this script as possible it forks processes to 
 
     bin/greatmigration
     |
-    |-- page process
+    +-- page process
     |   |
-    |   |-- upload process
-    |   |-- upload process
+    |   +-- upload process
+    |   +-- upload process
     |
     |-- page process
-        |
-        |-- upload process
-        |-- upload process
-
+    |   |
+    |   +-- upload process
+    |   +-- upload process
+    |
+    |-- ...
+    
 In my usage I ended up forking 18 "page" processes and typically had 4-6 "upload" processes running under each one simultaneously. If you have millions of objects you may want to tweak the code to actually start the page processes from a pool as well.
 
 ## Performance
