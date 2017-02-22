@@ -16,7 +16,7 @@ class GreatMigration
     @aws = Fog::Storage.new({
       :provider => 'aws',
       :aws_access_key_id => options[:aws_key],
-      :aws_secret_access_key => options[:aws_secret]
+      :aws_secret_access_key => options[:aws_secret],
       :region => options[:aws_region]
     })
     @rackspace_directory = rackspace.directories.get(options[:rackspace_container])
