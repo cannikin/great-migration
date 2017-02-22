@@ -21,6 +21,7 @@ class GreatMigration
     })
     @rackspace_directory = rackspace.directories.get(options[:rackspace_container])
     @aws_directory = aws.directories.get(options[:aws_bucket])
+    @aws_keys = @aws_directory.files.map(&:key)
     @files = []
     @total = 0
   end
@@ -67,7 +68,7 @@ class GreatMigration
       while process_pids.size < max_processes and files.any? do
         file = files.pop
         pid = Process.fork do
-          copy_file(file)
+          copy_file(page,file)
         end
         process_pids[pid] = { :file => file }
       end
@@ -82,15 +83,19 @@ class GreatMigration
     puts "  [#{Process.pid}] ** Page #{page+1}: Copied #{total} files in #{Time.now - time}secs"
   end
 
-  private def copy_file(file)
+  private def copy_file(page,file)
     if file.content_type == 'application/directory'
       # skip directories
     else
-      aws_directory.files.create(
-        :key          => file.key,
-        :body         => file.body,
-        :content_type => file.content_type,
-        :public       => true)
+     if @aws_keys.include?(file.key)
+        puts "    [#{Process.pid}] ** Page #{page+1}: File already exists skipping... #{file.key}"
+      else
+        aws_directory.files.create(
+          :key          => file.key,
+          :body         => file.body,
+          :content_type => file.content_type,
+          :public       => true)
+      end
     end
   end
 
