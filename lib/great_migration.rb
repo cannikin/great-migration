@@ -17,6 +17,7 @@ class GreatMigration
       :provider => 'aws',
       :aws_access_key_id => options[:aws_key],
       :aws_secret_access_key => options[:aws_secret]
+      :region => options[:aws_region]
     })
     @rackspace_directory = rackspace.directories.get(options[:rackspace_container])
     @aws_directory = aws.directories.get(options[:aws_bucket])
