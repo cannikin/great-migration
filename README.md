@@ -13,8 +13,9 @@ Install require gems:
 Call `bin/greatmigration` and pass the required options:
 
     bin/greatmigration --rackspace-user=username --rackspace-key=123456 \
-      --rackspace-container=rackcontainername --aws-key=ABCDEF \
-      --aws-secret=987654 --aws-bucket=s3bucketname
+      --rackspace-container=rackcontainername --rackspace-region=rackspaceregion_like_ord --aws-key=ABCDEF \
+      --aws-secret=987654 --aws-bucket=s3bucketname \
+      --aws-region=awsregion_like_us-west-2
 
 Check out `bin/greatmigration -h` for a couple more optional parameters.
 
