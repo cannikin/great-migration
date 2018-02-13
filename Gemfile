@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'fog'
+gem 'fog-aws'
+gem 'fog-rackspace'
 gem 'mime-types'
