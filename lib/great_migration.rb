@@ -1,4 +1,5 @@
-require 'fog'
+require 'fog/aws'
+require 'fog/rackspace'
 
 class GreatMigration
 
